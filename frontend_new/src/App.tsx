@@ -11,6 +11,7 @@ import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Restocks from './pages/Restocks';
 import Staff from './pages/Staff';
+import Statistics from './pages/Statistics';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +27,7 @@ const App: React.FC = () => {
           <Route path="transactions" element={<Transactions />} />
           <Route path="restocks" element={<Restocks />} />
           <Route path="staff" element={<Staff />} />
+          <Route path="statistics" element={<Statistics />} />
           <Route path="mobile" element={<MobilePurchase />} />
         </Route>
       </Routes>
@@ -34,3 +36,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

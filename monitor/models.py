@@ -38,6 +38,8 @@ class StatDaily(models.Model):
         related_name='daily_stats'
     )
     total_revenue = models.DecimalField('总营收', max_digits=12, decimal_places=2, default=0)
+    total_cost = models.DecimalField('总成本', max_digits=12, decimal_places=2, default=0)
+    total_profit = models.DecimalField('总利润', max_digits=12, decimal_places=2, default=0)
     order_count = models.IntegerField('订单数', default=0)
     alert_count = models.IntegerField('报警次数', default=0)
 

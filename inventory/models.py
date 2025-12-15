@@ -51,7 +51,13 @@ class LogTransaction(models.Model):
         related_name='transactions'
     )
     amount = models.DecimalField('成交金额', max_digits=10, decimal_places=2)
+    cost_price = models.DecimalField('成本价', max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField('交易时间', auto_now_add=True)
+
+    @property
+    def profit(self):
+        """计算单笔交易利润"""
+        return self.amount - self.cost_price
 
     class Meta:
         db_table = 'log_transaction'
@@ -83,6 +89,8 @@ class LogRestock(models.Model):
         related_name='restocks'
     )
     quantity = models.IntegerField('补货数量')
+    unit_cost = models.DecimalField('单位成本', max_digits=10, decimal_places=2, default=0)
+    total_cost = models.DecimalField('总成本', max_digits=12, decimal_places=2, default=0)
     created_at = models.DateTimeField('补货时间', auto_now_add=True)
 
     class Meta:

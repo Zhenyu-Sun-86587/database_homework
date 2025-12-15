@@ -20,6 +20,7 @@ from rest_framework.routers import DefaultRouter
 from users.views import SysAdminViewSet, SysStaffViewSet, AppUserViewSet
 from resources.views import BizSupplierViewSet, BizMachineViewSet, BizProductViewSet
 from inventory.views import BizInventoryViewSet, LogTransactionViewSet, LogRestockViewSet
+from monitor.views import LogAlertViewSet, StatDailyViewSet
 
 router = DefaultRouter()
 # Users
@@ -34,8 +35,12 @@ router.register(r'products', BizProductViewSet)
 router.register(r'inventories', BizInventoryViewSet)
 router.register(r'transactions', LogTransactionViewSet)
 router.register(r'restocks', LogRestockViewSet)
+# Monitor
+router.register(r'alerts', LogAlertViewSet)
+router.register(r'stat-daily', StatDailyViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 ]
+

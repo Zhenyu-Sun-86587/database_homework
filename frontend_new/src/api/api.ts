@@ -26,6 +26,8 @@ export const endpoints = {
     users: 'app-users/',
     staffs: 'sys-staffs/',
     admins: 'sys-admins/',
+    alerts: 'alerts/',
+    statDaily: 'stat-daily/',
 };
 
 export default api;

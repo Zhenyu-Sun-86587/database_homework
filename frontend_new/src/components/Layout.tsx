@@ -11,10 +11,11 @@ import {
     ShopOutlined,
     TransactionOutlined,
     ReloadOutlined,
-    TeamOutlined
+    TeamOutlined,
+    BarChartOutlined
 } from '@ant-design/icons';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const MainLayout: React.FC = () => {
     const {
@@ -33,6 +34,7 @@ const MainLayout: React.FC = () => {
         { key: '/transactions', icon: <TransactionOutlined />, label: '交易记录' },
         { key: '/restocks', icon: <ReloadOutlined />, label: '补货记录' },
         { key: '/staff', icon: <TeamOutlined />, label: '运维人员' },
+        { key: '/statistics', icon: <BarChartOutlined />, label: '财务统计' },
         { key: '/mobile', icon: <MobileOutlined />, label: '手机端购买演示' },
     ];
 
@@ -64,9 +66,6 @@ const MainLayout: React.FC = () => {
                         <Outlet />
                     </div>
                 </Content>
-                <Footer style={{ textAlign: 'center' }}>
-                    Vending System ©{new Date().getFullYear()} Created by Antigravity
-                </Footer>
             </Layout>
         </Layout>
     );

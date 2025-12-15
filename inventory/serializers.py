@@ -13,6 +13,7 @@ class LogTransactionSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
     machine_code = serializers.CharField(source='machine.machine_code', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
+    profit = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = LogTransaction
