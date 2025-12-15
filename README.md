@@ -9,7 +9,7 @@
 
   * **语言框架**：Python 3.9 + Django 4.2 (LTS)
   * **数据库**：MySQL 8.0 (必须 8.0+ 以支持高级触发器)
-  * **前端展示**：Django Admin (自带后台) + Bootstrap 5 (简单大屏)
+  * **前端展示**：Django Admin (自带后台，已实现)；Bootstrap 5 大屏（可选，当前仓库未实现自定义大屏页面）
 
 ### 3\. 数据库表结构 (11张表)
 
@@ -88,3 +88,55 @@
     2.  `current_stock` 减 1。
     3.  `item.save()`。
   * **验证**：运行脚本后，去数据库看 `log_alert` 表是否自动多了一条数据。
+
+-----
+
+### 5\. 项目实现对照 (Implementation Checklist)
+
+本仓库在 README 的基础上做了少量“更贴近闭环”的增强，以下为当前实现的落地情况：
+
+1.  **项目与 App 结构**：已创建 `vending_system` 项目与 4 个 app：`users`、`resources`、`inventory`、`monitor`。
+2.  **11 张业务表**：已在各 app 的 `models.py` 中实现，并通过 `db_table` 映射到 README 中的表名。
+3.  **联合唯一索引**：`biz_inventory` 已配置 `unique_together = ['machine', 'product']`。
+4.  **触发器（通过 migration 注入）**：位于 `inventory/migrations/0002_create_triggers.py`。
+    - `monitor_low_stock`：`biz_inventory` 更新后，库存从 `>=5` 变为 `<5` 时写入 `log_alert`
+    - `monitor_empty_stock`：`biz_inventory` 更新后，库存从 `>0` 变为 `0` 时写入 `log_alert`
+    - `monitor_machine_fault`：`biz_machine` 状态从 `normal` 变为 `fault` 时写入 `log_alert`
+    - `after_transaction_insert`：插入 `log_transaction` 后自动扣减 `biz_inventory.current_stock`
+    - `after_restock_insert`：插入 `log_restock` 后自动增加库存（不超过 `max_capacity`）
+5.  **Admin 后台**：已在各 app 的 `admin.py` 注册模型；`log_alert` 默认只读（由触发器写入）。
+6.  **购买模拟脚本**：位于 `scripts/simulate_purchase.py`（通过写入 `log_transaction` 驱动库存变更与报警）。
+
+-----
+
+### 6\. 快速开始 (Quick Start)
+
+#### 1) 准备数据库
+
+- MySQL 8.0+ 创建数据库：`vending_db`
+- 根据你的本机环境修改 `vending_system/settings.py` 中的 `DATABASES` 配置（或使用同名库/账号/密码）
+
+#### 2) 安装依赖与迁移
+
+```bash
+pip install django mysqlclient
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+访问后台：`http://127.0.0.1:8000/admin/`
+
+#### 3) 初始化测试数据
+
+```bash
+python scripts/init_data.py
+```
+
+#### 4) 触发器验证（模拟购买）
+
+```bash
+python scripts/simulate_purchase.py
+```
+
+预期现象：当指定商品库存从 5 降到 4、或从 1 降到 0 时，`log_alert` 会新增记录。
