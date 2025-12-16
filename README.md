@@ -90,6 +90,7 @@ python manage.py createsuperuser
 
 ### 启动后端
 ```bash
+.venv\Scripts\activate
 python manage.py runserver
 ```
 后端地址: http://127.0.0.1:8000/
