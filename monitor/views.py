@@ -61,11 +61,11 @@ class StatDailyViewSet(viewsets.ModelViewSet):
                 defaults={
                     'total_revenue': total_revenue,
                     'total_cost': total_cost,
-                    'total_profit': total_profit,
                     'order_count': order_count,
                     'alert_count': alert_count
                 }
             )
+
             if created:
                 created_count += 1
         

@@ -90,8 +90,12 @@ class LogRestock(models.Model):
     )
     quantity = models.IntegerField('补货数量')
     unit_cost = models.DecimalField('单位成本', max_digits=10, decimal_places=2, default=0)
-    total_cost = models.DecimalField('总成本', max_digits=12, decimal_places=2, default=0)
     created_at = models.DateTimeField('补货时间', auto_now_add=True)
+
+    @property
+    def total_cost(self):
+        """计算总成本 = 数量 × 单位成本"""
+        return self.quantity * self.unit_cost
 
     class Meta:
         db_table = 'log_restock'
@@ -100,3 +104,4 @@ class LogRestock(models.Model):
 
     def __str__(self):
         return f'{self.staff.name} - {self.machine.machine_code} - {self.product.name}'
+

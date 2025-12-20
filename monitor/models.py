@@ -39,9 +39,13 @@ class StatDaily(models.Model):
     )
     total_revenue = models.DecimalField('总营收', max_digits=12, decimal_places=2, default=0)
     total_cost = models.DecimalField('总成本', max_digits=12, decimal_places=2, default=0)
-    total_profit = models.DecimalField('总利润', max_digits=12, decimal_places=2, default=0)
     order_count = models.IntegerField('订单数', default=0)
     alert_count = models.IntegerField('报警次数', default=0)
+
+    @property
+    def total_profit(self):
+        """计算总利润 = 总营收 - 总成本"""
+        return self.total_revenue - self.total_cost
 
     class Meta:
         db_table = 'stat_daily'
@@ -51,3 +55,4 @@ class StatDaily(models.Model):
 
     def __str__(self):
         return f'{self.date} - {self.machine.machine_code}'
+

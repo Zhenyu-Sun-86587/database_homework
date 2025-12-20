@@ -162,9 +162,10 @@ class LogRestockViewSet(viewsets.ModelViewSet):
                 unit_cost = Decimal('0')
                 total_cost = Decimal('0')
             
-            # 保存补货记录，包含成本信息
+            # 保存补货记录，包含单位成本信息
             # 触发器会自动增加库存
-            serializer.save(unit_cost=unit_cost, total_cost=total_cost)
+            # total_cost 通过 @property 自动计算，无需存储
+            serializer.save(unit_cost=unit_cost)
 
     def perform_destroy(self, instance):
         """
@@ -200,7 +201,8 @@ class LogRestockViewSet(viewsets.ModelViewSet):
         
         restocks = LogRestock.objects.filter(created_at__date__gte=start_date)
         
-        total_cost = restocks.aggregate(Sum('total_cost'))['total_cost__sum'] or Decimal('0')
+        # 由于 total_cost 是计算属性，需要在 Python 中求和
+        total_cost = sum(r.total_cost for r in restocks)
         total_quantity = restocks.aggregate(Sum('quantity'))['quantity__sum'] or 0
         
         return Response({
