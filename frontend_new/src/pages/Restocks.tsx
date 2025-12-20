@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, InputNumber, Select, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Table, Button, Modal, Form, InputNumber, Select, message, Space, Input } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface Restock {
     id: number;
     staff: number;
+    staff_name?: string;
     machine: number;
+    machine_code?: string;
     product: number;
+    product_name?: string;
     quantity: number;
     created_at: string;
 }
@@ -20,6 +23,7 @@ const Restocks: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [searchText, setSearchText] = useState('');
 
     const fetchData = async () => {
         setLoading(true);
@@ -45,6 +49,19 @@ const Restocks: React.FC = () => {
         fetchData();
     }, []);
 
+    const filteredRestocks = useMemo(() => {
+        if (!searchText.trim()) return restocks;
+        const lower = searchText.toLowerCase();
+        return restocks.filter(r =>
+            String(r.staff).includes(lower) ||
+            String(r.machine).includes(lower) ||
+            String(r.product).includes(lower) ||
+            r.staff_name?.toLowerCase().includes(lower) ||
+            r.machine_code?.toLowerCase().includes(lower) ||
+            r.product_name?.toLowerCase().includes(lower)
+        );
+    }, [restocks, searchText]);
+
     const handleAdd = () => {
         form.resetFields();
         setModalVisible(true);
@@ -63,9 +80,9 @@ const Restocks: React.FC = () => {
 
     const columns = [
         { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-        { title: '运维人员ID', dataIndex: 'staff', key: 'staff' },
-        { title: '机器ID', dataIndex: 'machine', key: 'machine' },
-        { title: '商品ID', dataIndex: 'product', key: 'product' },
+        { title: '运维人员', dataIndex: 'staff_name', key: 'staff_name', render: (text: string, record: Restock) => text || `人员${record.staff}` },
+        { title: '机器', dataIndex: 'machine_code', key: 'machine_code', render: (text: string, record: Restock) => text || `机器${record.machine}` },
+        { title: '商品', dataIndex: 'product_name', key: 'product_name', render: (text: string, record: Restock) => text || `商品${record.product}` },
         { title: '数量', dataIndex: 'quantity', key: 'quantity' },
         { title: '补货时间', dataIndex: 'created_at', key: 'created_at', render: (text: string) => new Date(text).toLocaleString() },
     ];
@@ -74,9 +91,20 @@ const Restocks: React.FC = () => {
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">补货记录</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增补货</Button>
+                <Space>
+                    <Input
+                        placeholder="搜索人员/机器/商品"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增补货</Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={restocks} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredRestocks} rowKey="id" loading={loading} />
+
 
             <Modal
                 title="新增补货"

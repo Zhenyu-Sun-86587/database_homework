@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, message, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface Machine {
@@ -18,6 +18,7 @@ const Machines: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState('');
 
     const fetchMachines = async () => {
         setLoading(true);
@@ -34,6 +35,16 @@ const Machines: React.FC = () => {
     useEffect(() => {
         fetchMachines();
     }, []);
+
+    const filteredMachines = useMemo(() => {
+        if (!searchText.trim()) return machines;
+        const lower = searchText.toLowerCase();
+        return machines.filter(m =>
+            m.machine_code.toLowerCase().includes(lower) ||
+            m.location.toLowerCase().includes(lower) ||
+            m.region_code.toLowerCase().includes(lower)
+        );
+    }, [machines, searchText]);
 
     const handleOk = async () => {
         try {
@@ -101,15 +112,26 @@ const Machines: React.FC = () => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">机器管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-                    setEditingId(null);
-                    form.resetFields();
-                    setIsModalOpen(true);
-                }}>
-                    新增机器
-                </Button>
+                <Space>
+                    <Input
+                        placeholder="搜索编号/位置/区域"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                        setEditingId(null);
+                        form.resetFields();
+                        setIsModalOpen(true);
+                    }}>
+                        新增机器
+                    </Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={machines} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredMachines} rowKey="id" loading={loading} />
+
 
             <Modal title={editingId ? "编辑机器" : "新增机器"} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
                 <Form form={form} layout="vertical">

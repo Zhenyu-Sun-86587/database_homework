@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table, Button, Modal, Form, Input, message, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface Supplier {
@@ -16,6 +16,7 @@ const Suppliers: React.FC = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
     const [form] = Form.useForm();
+    const [searchText, setSearchText] = useState('');
 
     const fetchSuppliers = async () => {
         setLoading(true);
@@ -32,6 +33,15 @@ const Suppliers: React.FC = () => {
     useEffect(() => {
         fetchSuppliers();
     }, []);
+
+    const filteredSuppliers = useMemo(() => {
+        if (!searchText.trim()) return suppliers;
+        const lower = searchText.toLowerCase();
+        return suppliers.filter(s =>
+            s.name.toLowerCase().includes(lower) ||
+            s.contact.toLowerCase().includes(lower)
+        );
+    }, [suppliers, searchText]);
 
     const handleAdd = () => {
         setEditingSupplier(null);
@@ -94,9 +104,20 @@ const Suppliers: React.FC = () => {
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">供应商管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>添加供应商</Button>
+                <Space>
+                    <Input
+                        placeholder="搜索名称/联系方式"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>添加供应商</Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={suppliers} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredSuppliers} rowKey="id" loading={loading} />
+
 
             <Modal
                 title={editingSupplier ? '编辑供应商' : '添加供应商'}

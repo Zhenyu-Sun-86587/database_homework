@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table, Button, Modal, Form, Input, message, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface Staff {
@@ -18,6 +18,7 @@ const Staff: React.FC = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
     const [form] = Form.useForm();
+    const [searchText, setSearchText] = useState('');
 
     const fetchStaffs = async () => {
         setLoading(true);
@@ -34,6 +35,17 @@ const Staff: React.FC = () => {
     useEffect(() => {
         fetchStaffs();
     }, []);
+
+    const filteredStaffs = useMemo(() => {
+        if (!searchText.trim()) return staffs;
+        const lower = searchText.toLowerCase();
+        return staffs.filter(s =>
+            s.staff_id.toLowerCase().includes(lower) ||
+            s.name.toLowerCase().includes(lower) ||
+            s.phone.includes(searchText) ||
+            s.region_code.toLowerCase().includes(lower)
+        );
+    }, [staffs, searchText]);
 
     const handleAdd = () => {
         setEditingStaff(null);
@@ -97,9 +109,20 @@ const Staff: React.FC = () => {
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">运维人员管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>添加人员</Button>
+                <Space>
+                    <Input
+                        placeholder="搜索工号/姓名/电话/区域"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 220 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>添加人员</Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={staffs} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredStaffs} rowKey="id" loading={loading} />
+
 
             <Modal
                 title={editingStaff ? '编辑人员' : '添加人员'}

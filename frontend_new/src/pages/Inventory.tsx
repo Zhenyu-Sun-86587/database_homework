@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Modal, Form, InputNumber, Select, message, Progress } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Table, Button, Space, Modal, Form, InputNumber, Select, message, Progress, Input } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface InventoryItem {
@@ -31,6 +31,7 @@ const Inventory: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState('');
 
     const fetchData = async () => {
         setLoading(true);
@@ -53,6 +54,15 @@ const Inventory: React.FC = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    const filteredInventory = useMemo(() => {
+        if (!searchText.trim()) return inventory;
+        const lower = searchText.toLowerCase();
+        return inventory.filter(i =>
+            i.machine_code?.toLowerCase().includes(lower) ||
+            i.product_name?.toLowerCase().includes(lower)
+        );
+    }, [inventory, searchText]);
 
     const handleOk = async () => {
         try {
@@ -124,15 +134,26 @@ const Inventory: React.FC = () => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">库存管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-                    setEditingId(null);
-                    form.resetFields();
-                    setIsModalOpen(true);
-                }}>
-                    新增库存记录
-                </Button>
+                <Space>
+                    <Input
+                        placeholder="搜索机器/商品"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                        setEditingId(null);
+                        form.resetFields();
+                        setIsModalOpen(true);
+                    }}>
+                        新增库存记录
+                    </Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={inventory} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredInventory} rowKey="id" loading={loading} />
+
 
             <Modal title={editingId ? "编辑库存" : "新增库存"} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
                 <Form form={form} layout="vertical">

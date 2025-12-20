@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table, Button, Space, Modal, Form, Input, InputNumber, Select, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface Product {
@@ -24,6 +24,7 @@ const Products: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState('');
 
     const fetchData = async () => {
         setLoading(true);
@@ -44,6 +45,16 @@ const Products: React.FC = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // 搜索过滤逻辑
+    const filteredProducts = useMemo(() => {
+        if (!searchText.trim()) return products;
+        const lowerSearch = searchText.toLowerCase();
+        return products.filter(p => 
+            p.name.toLowerCase().includes(lowerSearch) ||
+            p.supplier_name?.toLowerCase().includes(lowerSearch)
+        );
+    }, [products, searchText]);
 
     const handleOk = async () => {
         try {
@@ -102,15 +113,26 @@ const Products: React.FC = () => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">商品管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-                    setEditingId(null);
-                    form.resetFields();
-                    setIsModalOpen(true);
-                }}>
-                    新增商品
-                </Button>
+                <Space>
+                    <Input
+                        placeholder="搜索商品名称或供应商"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 240 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                        setEditingId(null);
+                        form.resetFields();
+                        setIsModalOpen(true);
+                    }}>
+                        新增商品
+                    </Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={products} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredProducts} rowKey="id" loading={loading} />
+
 
             <Modal title={editingId ? "编辑商品" : "新增商品"} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
                 <Form form={form} layout="vertical">

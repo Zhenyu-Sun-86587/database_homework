@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Table, Button, Space, Modal, Form, Input, InputNumber, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import api, { endpoints } from '../api/api';
 
 interface AppUser {
@@ -16,6 +16,7 @@ const Users: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [searchText, setSearchText] = useState('');
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -32,6 +33,12 @@ const Users: React.FC = () => {
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    const filteredUsers = useMemo(() => {
+        if (!searchText.trim()) return users;
+        const lower = searchText.toLowerCase();
+        return users.filter(u => u.username.toLowerCase().includes(lower));
+    }, [users, searchText]);
 
     const handleOk = async () => {
         try {
@@ -89,15 +96,26 @@ const Users: React.FC = () => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">用户管理</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-                    setEditingId(null);
-                    form.resetFields();
-                    setIsModalOpen(true);
-                }}>
-                    新增用户
-                </Button>
+                <Space>
+                    <Input
+                        placeholder="搜索用户名"
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 180 }}
+                        allowClear
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                        setEditingId(null);
+                        form.resetFields();
+                        setIsModalOpen(true);
+                    }}>
+                        新增用户
+                    </Button>
+                </Space>
             </div>
-            <Table columns={columns} dataSource={users} rowKey="id" loading={loading} />
+            <Table columns={columns} dataSource={filteredUsers} rowKey="id" loading={loading} />
+
 
             <Modal title={editingId ? "编辑用户" : "新增用户"} open={isModalOpen} onOk={handleOk} onCancel={() => setIsModalOpen(false)}>
                 <Form form={form} layout="vertical">
